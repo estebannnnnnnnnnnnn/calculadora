@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Numérica</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjs@10.6.4/lib/browser/math.min.js"></script>
+</head>
+<body>
+    <h1>Calculadora Numérica</h1>
+
+    <div>
+        <label for="funcionInput">Función:</label>
+        <input type="text" id="funcionInput" placeholder="math.sin(x) + math.cos(x)">
+    </div>
+
+    <div>
+        <label for="inputError">Margen de Error:</label>
+        <input type="number" id="inputError" step="any" placeholder="0.001">
+    </div>
+
+    <div>
+        <label for="inputA">Valor Inicial a:</label>
+        <input type="number" id="inputA" step="any" placeholder="0">
+    </div>
+
+    <div>
+        <label for="inputB">Valor Inicial b:</label>
+        <input type="number" id="inputB" step="any" placeholder="10">
+    </div>
+
+    <button id="calcularBtn">Calcular</button>
+    <button id="ayudaBtn">Ayuda</button>
+
+    <div id="resultado"></div>
+    <div id="ayuda" style="display:none;">
+        <p>Para usar esta calculadora, ingrese la función, el margen de error y los valores iniciales. Luego, haga clic en "Calcular".</p>
+    </div>
+
+    <script>
+        function funcionObjetivo(x) {
+            const funcionString = document.getElementById("funcionInput").value;
+            return math.evaluate(funcionString, { x });
+        }
+
+        function metodoSeccionDorada(a, b, error) {
+            const phi = (1 + Math.sqrt(5)) / 2;
+
+            let c = b - (b - a) / phi;
+            let d = a + (b - a) / phi;
+            let iteraciones = 0;
+            let pasos = [];
+
+            while ((b - a) / 2 > error) {
+                const f_c = funcionObjetivo(c);
+                const f_d = funcionObjetivo(d);
+                pasos.push({ a, b, c, d, f_c, f_d });
+
+                if (f_c < f_d) {
+                    b = d;
+                } else {
+                    a = c;
+                }
+
+                c = b - (b - a) / phi;
+                d = a + (b - a) / phi;
+                iteraciones++;
+            }
+
+            return { minimo: (a + b) / 2, iteraciones, pasos };
+        }
+
+        function calcular() {
+            const a = parseFloat(document.getElementById("inputA").value);
+            const b = parseFloat(document.getElementById("inputB").value);
+            const error = parseFloat(document.getElementById("inputError").value);
+
+            const { minimo, iteraciones, pasos } = metodoSeccionDorada(a, b, error);
+
+            let pasoHTML = "<h3>Pasos:</h3>";
+            pasoHTML += "<ul>";
+            pasos.forEach((paso, index) => {
+                pasoHTML += `<li>Paso ${index + 1}: a=${paso.a.toFixed(6)}, b=${paso.b.toFixed(6)}, c=${paso.c.toFixed(6)}, d=${paso.d.toFixed(6)}, f(c)=${paso.f_c.toFixed(6)}, f(d)=${paso.f_d.toFixed(6)}</li>`;
+            });
+            pasoHTML += "</ul>";
+
+            document.getElementById("resultado").innerHTML = `Mínimo: ${minimo.toFixed(6)}, Iteraciones: ${iteraciones}`;
+            document.getElementById("resultado").innerHTML += pasoHTML;
+        }
+
+        function mostrarAyuda() {
+            const ayudaDiv = document.getElementById("ayuda");
+            ayudaDiv.style.display = ayudaDiv.style.display === "none" ? "block" : "none";
+        }
+
+        document.getElementById("calcularBtn").addEventListener("click", calcular);
+        document.getElementById("ayudaBtn").addEventListener("click", mostrarAyuda);
+    </script>
+</body>
+</html>
